@@ -242,6 +242,35 @@ class Socket_Beanstalk {
 	}
 
 	/**
+	 * Wait for a job to be deleted or buried.
+	 * Blocks until a response is received from the server indicating the job is 
+	 * out of the system.
+	 *
+	 * @param integer $jobid The job to wait for
+	 * @return true if the job has been deleted or wasn't found (likely already 
+	 *         completed). false on error or if the job was buried.
+	 */
+	public function wait($jobid) {
+		if (!$this->_write(sprintf('wait %d', $jobid))) {
+			return false;
+		}
+
+		$status = strtok($this->_read(), ' ');
+
+		switch ($status) {
+			case 'BURIED': // A job would only be buried if something bad happened
+				return false;
+			case 'DELETED': // Jobs are deleted on succssful execution
+			case 'NOT_FOUND': // The job has already been deleted and is no longer 
+			                  // in the sysmte
+				return true;
+			default:
+				$this->_error($status);
+				return false;
+		}
+	}
+
+	/**
 	 * The `use` command is for producers. Subsequent put commands will put jobs into
 	 * the tube specified by this command. If no use command has been issued, jobs
 	 * will be put into the tube named `default`.
