@@ -1,6 +1,6 @@
 
 BEANSTALK
----- A minimalistic PHP beanstalk client.
+---- Minimalistic PHP client for beanstalk.
 
 Synopsis
 --------
@@ -72,7 +72,7 @@ $beanstalk->disconnect();
 $beanstalk = new Socket_Beanstalk();
 
 $beanstalk->connect();
-$beanstalk->choose('flux');
+$beanstalk->watch('flux');
 
 while (true) {
     $job = $beanstalk->reserve(); // Block until job is available.
@@ -88,16 +88,23 @@ while (true) {
         $beanstalk->bury($job['id']);
     }
 }
-$beanstalk->disconnect();
+// When exiting i.e. on critical error conditions
+// you may also want to disconnect the consumer.
+// $beanstalk->disconnect();
 
 ?>
 
 Running the Tests
 -----------------
+The integration tests contained in this library require a running beanstalkd
+instance. You'll need to start a dedicated instance on port 11301 as follows.
+
+$ beanstalkd -VV -l 127.0.0.1 -p 11301
+
 Tests for this library are PHPUnit based. To run the tests you'll need
 to have PHPUnit installed[1]. Following commands will run all the tests.
 
 $ cd /path/to/beanstalk/src
-$ phpunit ../tests
+$ phpunit -c ../phpunit.xml
 
 [1] http://www.phpunit.de/manual/current/en/installation.html
